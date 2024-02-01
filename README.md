@@ -86,8 +86,8 @@ S3 client: Boto3<br/>
 9. Включаем сервис и запускаем<br/>
 
     ```bash
-    systemctl enable wginfobot.service
-    system
+    systemctl enable s3_upload_bot.service
+    systemctl start s3_upload_bot.service
     ```
 
 10. Бот готов к использованию 
