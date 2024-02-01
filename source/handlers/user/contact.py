@@ -21,14 +21,16 @@ async def check_contact(message: types.Message):
         if contact_id == user_id:
             # отправляем запрос 1С и определяем есть у пользователя доступ или нет
             result = onec.Login(my_number, user_id)
-            if result == 200:
+            if result.status_code == 200:
                 await message.answer("Спасибо, Вы зарегистрированы!", reply_markup=await reply.list_orders_kb())
                 db.set_status(user_id, 1)
                 logger.success(f"[+] User ID: {user_id} зарегистрировался в 1С")
-
-            elif result == 404 or result == 500:
+            elif result.status_code == 404 or result.status_code == 500:
                 await message.answer("У Вас нет прав на регистрацию")
                 logger.error(f"[+] User ID: {user_id} не смог зарегистрироваться в 1С, Ошибка [У Вас нет прав на регистрацию]")
+            else:
+                await message.answer("Что-то пошло не так")
+                logger.error(f"[+] User ID: {user_id} не смог зарегистрироваться в 1С, Ошибка [{result.reason}]")
         else:
             await message.answer("Это не ваш контакт!\nОтправьте свой контакт пожалуйста")
             logger.error(f"[-] User ID: {user_id} пытался отправить не свой контакт")

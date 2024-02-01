@@ -24,7 +24,8 @@ def Login(number, chat_id):
     #my_log = ["user_login", response.status_code, time_stop - time_start] #log
     logger.info(f"[ ] {response.status_code}, {time_stop - time_start}")
     #return response.text, my_log
-    return response.status_code
+    #return response.status_code, 
+    return response 
 
 #получаем список заказ-нарядов
 def LastOrders(chat_id):

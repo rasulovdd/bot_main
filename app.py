@@ -1,4 +1,10 @@
 from aiogram import executor
+from source import handlers
+from source import middlewares
+from source.handlers import dp
+from aiogram import executor
+from loguru import logger
+import time
 
 async def set_commands(dp):
     from aiogram import types
@@ -12,11 +18,6 @@ async def set_commands(dp):
 
 
 async def on_startup(dp):
-    from source import handlers
-    from source import middlewares
-    from loguru import logger
-    import time
-
     middlewares.setup(dp)
     await set_commands(dp)
     handlers.setup(dp)
@@ -33,7 +34,4 @@ async def on_startup(dp):
 # Запуск бота
 if __name__ == "__main__":
     # Launch
-    from aiogram import executor
-    from source.handlers import dp
-
     executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
