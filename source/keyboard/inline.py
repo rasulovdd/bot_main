@@ -16,10 +16,14 @@ async def order_list(guid):
 
 async def order_list_mini(guid):
     """ показать детали ЗН """
-    keyboard = InlineKeyboardMarkup(row_width=1)
+    keyboard = InlineKeyboardMarkup(row_width=2)
     buttons = [
         InlineKeyboardButton(
-            text="📝 Детали обслуживания",
+            text="✅ Выбрать",
+            callback_data=f'order_{guid}'
+        ),
+        InlineKeyboardButton(
+            text="📝 Детали",
             callback_data=f'ordermini_{guid}'
         ),
     ]

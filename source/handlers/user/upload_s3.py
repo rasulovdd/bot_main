@@ -11,7 +11,7 @@ from source.data import config, s3
 from source.keyboard import inline, reply
 
 # Обработчик на прием видео и фото
-@rate_limit(limit=1)
+#@rate_limit(limit=10)
 @dp.message_handler(content_types=[types.ContentType.PHOTO, types.ContentType.VIDEO])
 async def upload_s3_file(message: types.Message):
     user_id = message.from_user.id
@@ -32,6 +32,8 @@ async def upload_s3_file(message: types.Message):
         if status == 3:
             logger.info(f"[ ] Пользователь с ID: {user_id}, отправил файл. {file_name}")
             message_id = db.get_message_id(user_id)
+            #устанавливаем статус 5
+            #db.set_status(user_id, 5)
             # удаляем сообщение (загрузите фото или видео)
             try:
                 await bot.delete_message(user_id, message_id)
@@ -84,11 +86,20 @@ async def upload_s3_file(message: types.Message):
             logger.info(f"[ ] Не зарегистрированный пользователь с ID: {user_id}, отправил файл. {file_name}")
             #удаляем файл 
             await delete_files(file_info.file_path)
+        
+        # elif status == 5:
+        #     logger.info(f"[ ] UserID: {user_id}, отправил 2 файла")
+        #     # удаляем сообщение
+        #     await message.delete()
+        #     #удаляем файл 
+        #     await delete_files(file_info.file_path)
+        
         else:
             await message.answer("Заказ-наряд не выбран. Прошу сперва выберите заказ наряд")
-            logger.info(f"[ ] Пользователь с ID: {user_id}, отправил файл. {file_name}. Заказ-наряд не выбран")
+            logger.info(f"[ ] UserID: {user_id}, отправил файл. {file_name}. Заказ-наряд не выбран")
             #удаляем файл 
             await delete_files(file_info.file_path)
+
 
 @rate_limit(limit=1)
 # Обработчик на прием файлов

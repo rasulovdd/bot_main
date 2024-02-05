@@ -87,9 +87,9 @@ async def orders_list(message: types.Message):
                 my_text = (
                     f"📑 Заказ №: {data['docnumber']}\n"
                     f"🗓 Дата: {order_data_text[0]} {order_data_text[1]}\n"
-                    f"🚘 VIN: <tg-spoiler>{data['vin']}</tg-spoiler>\n"
+                    f"🚘 {data['model']}\n"
                     f"⚙️ Номер: {data['regn']}\n"
-                    f"👤 Клиент: {data['name']}"
+                    f"⚙️ VIN: <tg-spoiler>{data['vin']}</tg-spoiler>"
                 )
                 await message.answer(my_text, parse_mode="HTML", reply_markup=await inline.order_list(data['guid']))
                 
@@ -180,7 +180,7 @@ async def select_order(call: types.CallbackQuery):
     db.set_status(user_id, 3) #устанавливаем статус 3
     # удаляем кнопку Выбрать
     await call.message.edit_reply_markup(reply_markup=await inline.selected_order())
-    logger.info(f"[ ] Пользователь ID: {user_id} выбрал ЗН. guid: {order_guid}")
+    logger.info(f"[ ] UserID: {user_id} выбрал ЗН. guid: {order_guid}")
     # создаем кнопку Загрузить фото/видео
     await call.message.answer("Что Вы хотите сделать?", reply_markup=await inline.upload_content(order_guid, call.message.message_id))
     #я тут
@@ -217,7 +217,7 @@ async def selected_order(call: types.CallbackQuery):
 @rate_limit(limit=1)
 async def cancel_order(call: types.CallbackQuery):
     user_id = call.from_user.id
-    logger.info(f"[ ] Выбор ЗН отменен.")
+    logger.info(f"[ ] UserID: {user_id}. Выбор ЗН отменен.")
     message_id = call.data.split("_")[1]
     await call.message.edit_text("❌ Отменено",reply_markup=None)
     # устанавливаем статус 1
