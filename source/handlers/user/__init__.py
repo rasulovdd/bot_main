@@ -55,6 +55,30 @@ def register_user_handlers(dp: Dispatcher):
             lambda call: call.data.startswith("no_"),
             state="*",
         )
+        
+        dp.register_callback_query_handler(
+            next_all,
+            lambda call: call.data.startswith("next-all"),
+            state="*",
+        )
+        
+        dp.register_callback_query_handler(
+            next_one,
+            lambda call: call.data.startswith("next_"),
+            state="*",
+        )
+        
+        dp.register_callback_query_handler(
+            ordermini_button,
+            lambda call: call.data.startswith("ordermini_"),
+            state="*",
+        )
+
+        dp.register_callback_query_handler(
+            one_one,
+            lambda call: call.data == ("1_1"),
+            state="*",
+        )
 
 
     except Exception as e:

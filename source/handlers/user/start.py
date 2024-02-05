@@ -3,7 +3,7 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.utils.markdown import hbold
 import source.database.db as db
-
+from loader import bot
 from source.handlers.user.check_is_user_admin import is_admin
 from source.keyboard import reply
 #from loader import db_manager
@@ -40,13 +40,27 @@ async def start(message: types.Message, state: FSMContext):
             await message.answer('Привет! Рад видеть Вас снова.', reply_markup=await reply.list_orders_kb())
             # удаляем tmp данные 
             db.del_order_guid(user_id)
+            db.del_order_db(user_id, 0)
+            db.del_order_db(user_id, 1)
+            db.del_order_db(user_id, 2)
         else:
+            await message.answer('Привет! Рад видеть Вас снова.', reply_markup=await reply.list_orders_kb())
             # cбрасываем статус пользователя
             db.set_status(user_id, 1)
             # удаляем tmp данные 
             db.del_order_guid(user_id)
-            await message.answer('Привет! Рад видеть Вас снова.', reply_markup=await reply.list_orders_kb())
-            
+            db.del_order_db(user_id, 0)
+            #получаем message_id для удаления
+            msg = db.get_message_id_temp(user_id, 1)
+            if msg:
+                for msg_id in msg:
+                    await bot.delete_message(user_id, msg_id)  # удаляем сообщения
+                db.del_order_db(user_id, 1)# удаляем tmp 1
+            msg2 = db.get_message_id_temp(user_id, 2)
+            if msg2:
+                for msg_id2 in msg2:
+                    await bot.delete_message(user_id, msg_id2)  # удаляем сообщения
+                db.del_order_db(user_id, 2)# удаляем tmp 2
     await state.finish()
 
         

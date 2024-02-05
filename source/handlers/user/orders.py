@@ -27,25 +27,45 @@ async def orders_list(message: types.Message):
                     data = json.loads(result)
                 except ValueError as my_error:
                     logger.error(f"[-] Мои заказ-наряды. Ошибка: {my_error}")
-                    await message.answer(
-                        user_id, "Что-то пошло не так!\nНажмите /start и начните сначала")
+                    await message.answer("Что-то пошло не так!\nНажмите /start и начните сначала")
                     return
+                # записываем данные в базу orders 
+                db.set_order_db(user_id, data, 0)
                 # вытаскиваем нужные данные из json
+                i = 0
                 for order in data["orders"]:
                     # выводим список заказ-нарядов
+                    i += 1
                     order_data = order['docdate']
                     order_data_text = order_data.split("T")
                     my_text = (
                         f"📑 Заказ №: {order['docnumber']}\n"
                         f"🗓 Дата: {order_data_text[0]} {order_data_text[1]}\n"
-                        #f"🗓 Дата: {order['docdate']}\n"
-                        f"🚘 VIN: <tg-spoiler>{order['vin']}</tg-spoiler>\n"
-                        f"⚙️ Номер: {order['regn']}\n"
-                        f"👤 Клиент: {order['name']}"
+                        #f"🚘 {order['model']}\n"
+                        #f"⚙️ Номер: {order['regn']}\n"
+                        #f"⚙️ VIN: <tg-spoiler>{order['vin']}</tg-spoiler>"
                     )
-                    await message.answer(my_text, parse_mode="HTML", reply_markup=await inline.order_list(order['guid']))
+                    msg = await message.answer(my_text, parse_mode="HTML", reply_markup=await inline.order_list_mini(order['guid']))
+                    #записываем message_id для удаления 
+                    db.set_order_message_id(user_id, msg.message_id, 1)
+                    if i == 5:
+                            break
                     # пауза после отправки сообщений чтобы не попасть в бан лист
-                    sleep(0.05)
+                    # sleep(0.05)
+                #print (len(data["orders"])) #debug
+                # получаем количество строк 
+                orders_len_1 = len(data["orders"])//5
+                if orders_len_1 == len(data["orders"])/5:
+                    orders_len = orders_len_1
+                else:
+                    orders_len = orders_len_1 + 1
+                #print (orders_len) #debug
+                # создаем динамические кнопки
+                msg = await bot.send_message(
+                        user_id, "Показать больше ...", 
+                        reply_markup=await inline.orders_list_button(orders_len, 1))
+                # записываем id сообщения
+                db.set_order_message_id(user_id, msg.message_id, 2)
             else:
                 await message.answer("Что-то пошло не так(")
         
@@ -59,8 +79,7 @@ async def orders_list(message: types.Message):
                     data = json.loads(result)
                 except ValueError as my_error:
                     logger.error(f"[-] Заказ-наряд. Ошибка: {my_error}")
-                    await message.answer(
-                        user_id, "Что-то пошло не так!\nНажмите /start и начните сначала")
+                    await message.answer("Что-то пошло не так!\nНажмите /start и начните сначала")
                     return
                 # выводим заказ-наряд
                 order_data = data['docdate']
@@ -164,6 +183,21 @@ async def select_order(call: types.CallbackQuery):
     logger.info(f"[ ] Пользователь ID: {user_id} выбрал ЗН. guid: {order_guid}")
     # создаем кнопку Загрузить фото/видео
     await call.message.answer("Что Вы хотите сделать?", reply_markup=await inline.upload_content(order_guid, call.message.message_id))
+    #я тут
+    # удаляем лишние сообщения и tmp
+    msg_1 = db.get_message_id_temp(user_id, 1)
+    msg_2 = db.get_message_id_temp(user_id, 2)
+    orders_msg_id = call.message.message_id
+    if msg_1:
+        for msg_id in msg_1:
+            if msg_id != orders_msg_id:
+                await bot.delete_message(user_id, msg_id)  # удаляем сообщения
+    if msg_2:
+        for msg_id_2 in msg_2:
+            await bot.delete_message(user_id, msg_id_2)  # удаляем сообщения
+    db.del_order_db(user_id, 0)# удаляем tmp 0
+    db.del_order_db(user_id, 1)# удаляем tmp 1
+    db.del_order_db(user_id, 2)# удаляем tmp 2
 
 @rate_limit(limit=1)
 async def select_upload(call: types.CallbackQuery):
@@ -190,9 +224,119 @@ async def cancel_order(call: types.CallbackQuery):
     db.set_status(user_id, 1) # режим выбора зн
     # удаляем tmp данные 
     db.del_order_guid(user_id)
+    db.del_order_db(user_id, 2)# удаляем tmp 2
     # удаляем сообщение 
     try:
         await bot.delete_message(user_id, message_id)
         logger.success(f"[ ] Сообщение id: {message_id} удалено.")
     except:
         logger.error(f"[-] Сообщение id. {message_id} не сущействует.")
+    await call.message.answer("Вы вернулись в главное меню", reply_markup=await reply.list_orders_kb())
+    
+
+@rate_limit(limit=1)
+async def next_all(call: types.CallbackQuery):
+    user_id = call.from_user.id
+    logger.info(f"[ ] UserID {user_id}. Нажал кнопку [next_all]")
+    msg = db.get_message_id_temp(user_id, 1)
+    orders_list = db.get_orders_info(user_id, 0, 0, 30)
+    if msg:
+        for msg_id in msg:
+            await bot.delete_message(user_id, msg_id)  # удаляем сообщения
+        db.del_order_db(user_id, 1)# удаляем tmp 1
+    msg2 = db.get_message_id_temp(user_id, 2)
+    if msg2:
+        for msg_id2 in msg2:
+            await bot.delete_message(user_id, msg_id2)  # удаляем сообщения
+        db.del_order_db(user_id, 2)# удаляем tmp 2
+
+    for order in orders_list:
+        # выводим список заказ-нарядов
+        order_data = order[1]
+        order_data_text = order_data.split("T")
+        my_text = (
+            f"📑 Заказ №: {order[0]}\n"
+            f"🗓 Дата: {order_data_text[0]} {order_data_text[1]}\n"
+            #f"🚘 {order['model']}\n"
+            #f"⚙️ Номер: {order['regn']}\n"
+            #f"⚙️ VIN: <tg-spoiler>{order['vin']}</tg-spoiler>"
+        )
+        msg = await call.message.answer(my_text, parse_mode="HTML", reply_markup=await inline.order_list_mini(order[2]))
+        #записываем message_id для удаления 
+        db.set_order_message_id(user_id, msg.message_id, 1)
+        # пауза после отправки сообщений чтобы не попасть в бан лист
+        sleep(0.05)
+
+@rate_limit(limit=1)
+async def ordermini_button(call: types.CallbackQuery):
+    user_id = call.from_user.id
+    logger.info(f"[ ] UserID {user_id}. Нажал кнопку [ordermini]")
+    guid = call.data.split("_")[1]
+    print (guid)
+    order_info = db.get_ordermini_info(user_id, guid)
+    # выводим список заказ-нарядов
+    order_data = order_info[1]
+    order_data_text = order_data.split("T")
+    my_text = (
+            f"📑 Заказ №: {order_info[0]}\n"
+            f"🗓 Дата: {order_data_text[0]} {order_data_text[1]}\n"
+            f"🚘 {order_info[3]}\n"
+            f"⚙️ Номер: {order_info[4]}\n"
+            f"⚙️ VIN: <tg-spoiler>{order_info[5]}</tg-spoiler>"
+        )
+    await call.message.edit_text(my_text, parse_mode="HTML", reply_markup=await inline.order_list(order_info[2]))
+
+@rate_limit(limit=1)
+async def one_one(call: types.CallbackQuery):
+    await bot.answer_callback_query(call.id, text='Вы уже тут :)')
+
+@rate_limit(limit=1)
+async def next_one(call: types.CallbackQuery):
+    user_id = call.from_user.id
+    my_step = call.data.split('_')[1]
+    my_number = call.data.split('_')[2]
+    #print (my_number) #debug
+    logger.info(f"[ ] UserID {user_id}. Нажал кнопку [{my_number}]")
+    orders_list = db.get_orders_info(user_id, 0, my_step, 5)  # получаем сообщения
+    orders_list_all = db.get_orders_info(user_id, 0, 0, 30)  # получаем сообщения
+    # очищаем сообщение
+    i = 0
+    # получаем id сообщений
+    msg_id = db.get_message_id_temp(user_id, 1)  
+    for order in orders_list:  # вытаскиваем нужные данные из json
+        await bot.edit_message_text(
+            chat_id=user_id,
+            text="📑\n💸", message_id=msg_id[i]
+        )  # очищаем сообщение
+        i += 1
+    #я тут
+    i = 0
+    # вытаскиваем нужные данные из json
+    for order in orders_list:
+        # print (msg_id[i]) #debug 
+        # print (order) #debug 
+        # выводим список заказ-нарядов
+        order_data = order[1]
+        order_data_text = order_data.split("T")
+        my_text = (
+            f"📑 Заказ №: {order[0]}\n"
+            f"🗓 Дата: {order_data_text[0]} {order_data_text[1]}\n"
+        )
+        await bot.edit_message_text(
+            text=my_text, chat_id=user_id, message_id=msg_id[i], 
+            parse_mode="HTML", reply_markup=await inline.order_list_mini(order[2])
+        )
+        i += 1
+        # if i == 5:
+        #         break
+
+    # получаем количество строк 
+    orders_len_1 = len(orders_list_all)//5
+    if orders_len_1 == len(orders_list_all)/5:
+        orders_len = orders_len_1
+    else:
+        orders_len = orders_len_1 + 1
+    
+    # создаем динамические кнопки
+    await call.message.edit_text("Показать больше ...", 
+                           reply_markup=await inline.orders_list_button(orders_len, my_number))

@@ -27,6 +27,17 @@ CREATE TABLE IF NOT EXISTS tmp (
   file_ext varchar(10),
   file_type varchar(10),
   file_path varchar(200)
+);
+CREATE TABLE IF NOT EXISTS orders (
+  user_id bigint(20),
+  message_id bigint(20),
+  docnumber varchar(10),
+  docdate varchar(50),
+  guid varchar(50),
+  model varchar(30),
+  regn varchar(10),
+  vin varchar(50),
+  tmp int(10)
 );"
 
 sudo sed -i 's/bind-address.*/bind-address = 127.0.0.1/' /etc/mysql/mysql.conf.d/mysqld.cnf

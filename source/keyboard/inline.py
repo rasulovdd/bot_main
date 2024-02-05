@@ -1,12 +1,26 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 async def order_list(guid):
-    """ выбрать заказ-наряд """
+    """ показать список ЗН """
     keyboard = InlineKeyboardMarkup(row_width=1)
     buttons = [
         InlineKeyboardButton(
-            text="Выбрать",
+            text="✅ Выбрать",
             callback_data=f'order_{guid}'
+        ),
+    ]
+
+    for button in buttons:
+        keyboard.insert(button)
+    return keyboard
+
+async def order_list_mini(guid):
+    """ показать детали ЗН """
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    buttons = [
+        InlineKeyboardButton(
+            text="📝 Детали обслуживания",
+            callback_data=f'ordermini_{guid}'
         ),
     ]
 
@@ -108,3 +122,35 @@ async def yes_no(guid, message_id):
     for button in buttons:
         keyboard.insert(button)
     return keyboard
+
+async def orders_list_button(orders_len, my_button):
+    """ создаем динамические кнопки """
+    keyboard = InlineKeyboardMarkup(row_width=8)
+    buttons = []
+    buttons_num = 1
+    my_step = 0
+    for x in range(0, orders_len):
+        if int(buttons_num) == int(my_button):
+            buttons.append(
+                InlineKeyboardButton(
+                    "✖️", callback_data="1_1")
+            )
+        else:
+            buttons.append(
+                InlineKeyboardButton(
+                    buttons_num, callback_data=f"next_{my_step}_{buttons_num}")
+            )
+        my_step = my_step + 5
+        buttons_num = buttons_num + 1
+        if x == 7:
+            break  # выходим из цикла
+    
+    for button in buttons:
+        keyboard.insert(button)
+    
+    keyboard.add(InlineKeyboardButton(
+        "Показать все ЗН", callback_data="next-all"))
+    
+    return keyboard
+
+    
