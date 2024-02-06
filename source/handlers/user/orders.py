@@ -272,7 +272,7 @@ async def ordermini_button(call: types.CallbackQuery):
     user_id = call.from_user.id
     logger.info(f"[ ] UserID {user_id}. Нажал кнопку [ordermini]")
     guid = call.data.split("_")[1]
-    print (guid)
+    #print (guid)
     order_info = db.get_ordermini_info(user_id, guid)
     # выводим список заказ-нарядов
     order_data = order_info[1]
