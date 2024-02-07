@@ -47,7 +47,7 @@ S3 client: Boto3<br/>
 6. Запустить скрипт mysql-setup.sh<br/>
     даем права 
     ```bash
-    chmor +x .mysql-setup.sh
+    chmod +x .mysql-setup.sh
     ```
     запускаем скрипт
     ```bash
