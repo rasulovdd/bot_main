@@ -119,5 +119,4 @@ class Configuration:
     @property
     def onec_host(self) -> str:
         return self._onec_host
-    
-    
+        

@@ -297,3 +297,5 @@ def get_ordermini_info(user_id, guid):
     except Error as error:
         logger.error(f"[-] UserID:{user_id} не смог получить данные. {error}")
     return ordermini_info
+
+    #test
