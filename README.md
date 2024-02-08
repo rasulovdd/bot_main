@@ -14,7 +14,7 @@ S3 client: Boto3<br/>
 1. Скачайте репозиторий<br/>
 
     ```bash
-    git clone https://github.com/rasulovdd/s3_upload_bot.git && cd s3_upload_bot
+    git clone https://github.com/wilgood/s3_upload_bot.git && cd s3_upload_bot
     ```
 
 2. Устанавливаем виртуальное окружение<br/>
