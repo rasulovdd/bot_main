@@ -51,6 +51,6 @@ sudo systemctl restart mysql
 
 echo "MySQL установлен и настроен успешно."
 echo "Пользователь: bot_user"
-echo "Пароль: password1!"
+echo "Пароль: bot_password1!"
 echo "База данных: s3_upload_bot"
-echo "Таблицы: users, tmp"
+echo "Таблицы: users, tmp, orders"

@@ -16,7 +16,6 @@ class Configuration:
         load_dotenv()
         self._bot_token: str = self._get_bot_token()
         self._bot_server: str = self._get_bot_server()
-        self._admins_ids: list[int] = self._get_admins_ids()
         self._database_connection_parameters: dict[
             str, str
         ] = self._get_database_connection_parameters()
@@ -36,12 +35,6 @@ class Configuration:
         if not bot_server:
             raise DotEnvVariableNotFound("bot_server")
         return bot_server
-
-    def _get_admins_ids(self) -> list[int]:
-        admins_ids = getenv("ADMINS_IDS")
-        if not admins_ids:
-            raise DotEnvVariableNotFound("ADMINS_IDS")
-        return [int(admin_id) for admin_id in admins_ids.split(",") if admin_id]
 
     def _get_database_connection_parameters(self) -> dict[str, str]:
         for parameter in [
@@ -106,10 +99,6 @@ class Configuration:
     @property
     def bot_server(self) -> str:
         return self._bot_server
-
-    @property
-    def admins_ids(self) -> list[int]:
-        return self._admins_ids
 
     @property
     def database_connection_parameters(self) -> dict[str, str]:
