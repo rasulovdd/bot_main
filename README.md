@@ -47,11 +47,11 @@ S3 client: Boto3<br/>
 6. Запустить скрипт mysql-setup.sh<br/>
     даем права 
     ```bash
-    chmor +x .mysql-setup.sh
+    chmod +x mysql-setup.sh
     ```
     запускаем скрипт
     ```bash
-    .mysql-setup.sh
+    /root/s3_upload_bot/mysql-setup.sh
     ```
 
 7. Создаем .env файл с вашими данными, можно создать из шаблона и просто поправить поля <br/>
